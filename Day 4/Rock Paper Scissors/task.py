@@ -1,0 +1,85 @@
+rock = '''
+    _______
+---'   ____)
+      (_____)
+      (_____)
+      (____)
+---.__(___)
+'''
+
+paper = '''
+    _______
+---'   ____)____
+          ______)
+          _______)
+         _______)
+---.__________)
+'''
+
+scissors = '''
+    _______
+---'   ____)____
+          ______)
+       __________)
+      (____)
+---.__(___)
+'''
+import random
+choices = [rock , paper , scissors]
+u_choice = int(input("What do you choose? Type 0 for Rock, 1 for Paper, or 2 for Scissors."))
+c_choice = random.randint(0 , 2)
+
+#previous code
+# if 0 <= u_choice <= 2:
+#     print(choices[u_choice])
+# else:
+#     print("You must choose between 0, 1, or 2.")
+# if u_choice == 0:
+#     if c_choice == 1:
+#         print("Computer chose" + choices[c_choice] + "You lose!")
+#     elif c_choice == 2:
+#         print("Computer chose" + choices[c_choice] + "You win!")
+#     elif c_choice == 0:
+#         print("Computer chose" + choices[c_choice] + "It's a draw!")
+# elif u_choice == 1:
+#     if c_choice == 0:
+#         print("Computer chose" + choices[c_choice] + "You win!")
+#     elif c_choice == 2:
+#         print("Computer chose" + choices[c_choice] + "You lose!")
+#     elif c_choice == 1:
+#         print("Computer chose" + choices[c_choice] + "It's a draw!")
+# elif u_choice == 2:
+#     if c_choice == 0:
+#         print("Computer chose" + choices[c_choice] + "You lose!")
+#     elif c_choice == 1:
+#         print("Computer chose" + choices[c_choice] + "You win!")
+#     elif c_choice == 2:
+#         print("Computer chose" + choices[c_choice] + "It's a draw!")
+
+#code made more efficient
+if u_choice > 2 or u_choice < 0:
+    print("error")
+else:
+    print(choices[u_choice])
+    print("Computer chose: " + choices[c_choice])
+    if u_choice == 0:
+        if c_choice == 0:
+            print("It's a draw!")
+        elif c_choice == 1:
+            print("You lose!")
+        elif c_choice == 2:
+            print("Victory!")
+    if u_choice == 1:
+        if c_choice == 0:
+            print("Victory!")
+        elif c_choice == 1:
+            print("It's a draw!")
+        elif c_choice == 2:
+            print("You lose!")
+    if u_choice == 2:
+        if c_choice == 0:
+            print("Victory!")
+        elif c_choice == 1:
+            print("You lose!")
+        elif c_choice == 2:
+            print("It's a draw!")
