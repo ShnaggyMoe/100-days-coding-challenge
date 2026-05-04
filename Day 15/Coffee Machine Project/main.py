@@ -30,3 +30,17 @@ resources = {
     "coffee": 100,
 }
 
+while True:
+    choice = input('What would you like? ').lower()
+    if choice == 'espresso':
+        something
+    elif choice == 'latte':
+        something
+    elif choice == 'cappuccino':
+        something
+    elif choice == 'report':
+        for key in resources:
+            value = resources[key]
+            print(f"{key}: {value}mg")
+    elif choice == "off":
+        break
