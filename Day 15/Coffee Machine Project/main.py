@@ -25,22 +25,31 @@ MENU = {
 }
 
 resources = {
-    "water": 300,
+    "water": 30,
     "milk": 200,
     "coffee": 100,
 }
 
+money_in_machine = 0
 while True:
     choice = input('What would you like? ').lower()
     if choice == 'espresso':
-        something
+        if resources["water"] >= MENU["espresso"]["ingredients"]["water"]:
+            if resources["coffee"] >= MENU["espresso"]["ingredients"]["coffee"]:
+                print("espresso coming up!")
+            else:
+                print("Sorry there is not enough coffee.")
+        else:
+            print("Sorry there is not enough water.")
     elif choice == 'latte':
-        something
+        pass
     elif choice == 'cappuccino':
-        something
+        pass
     elif choice == 'report':
         for key in resources:
             value = resources[key]
             print(f"{key}: {value}mg")
+        print("debug")
+        print(f"Money: ${money_in_machine} ")
     elif choice == "off":
         break
