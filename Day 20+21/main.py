@@ -33,11 +33,11 @@ while game_is_on:
         user_score.update_score()
     if snake.segments[0].xcor() >= 300 or snake.segments[0].xcor() <= -300:
         user_score.clear()
-        user_score.game_over()
+        user_score.reset()
         break
     elif snake.segments[0].ycor() >= 300 or snake.segments[0].ycor() <= -300:
         user_score.clear()
-        user_score.game_over()
+        user_score.reset()
         break
 
 screen.exitonclick()
