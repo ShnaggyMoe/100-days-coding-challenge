@@ -1,6 +1,6 @@
 type: theory
 files:
-  - name: main.py
+  - name: mainone.py
     visible: true
     learner_created: false
   - name: __init__.py
