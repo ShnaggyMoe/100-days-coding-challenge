@@ -25,4 +25,4 @@ class FlightSearch:
         }
         response = requests.get(url="https://app.100daysofpython.dev/v1/flights/search", params=params)
         data = response.json()
-        print(data)
+        return data
