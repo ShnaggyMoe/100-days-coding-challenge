@@ -37,6 +37,11 @@ element = WebDriverWait(driver, 10).until(
 )
 
 time_list = driver.find_elements(By.CSS_SELECTOR, "p[id^='class-time-']")
+
+class_booked = 0
+waitlists_joined = 0
+already_booked_or_waitlisted = 0
+total_for_tuesday = 0
 for time in time_list:
     time_text = time.text
     time_text_2 = time_text.split(": ")
@@ -48,21 +53,38 @@ for time in time_list:
         if "tue" in day_group_id:
             booked = class_card.get_attribute("data-user-booked")
             waitlisted = class_card.get_attribute("data-user-waitlisted")
+            fully_booked = class_card.get_attribute("data-is-fully-booked")
             class_detail = class_card.find_element(By.CSS_SELECTOR, value="h3[id^='class-name']")
             class_detail_text = class_detail.text
+            day_group_list = day_group_id.split("-")
+            day_group_list[3] = day_group_list[3].replace("(", "")
+            day_group_list[4] = day_group_list[4].replace(")", "")
+            day_group_list[5] = day_group_list[5].replace(")", "")
+            today = f"{day_group_list[3]} {day_group_list[4]} {day_group_list[5]}"
+            total_for_tuesday += 1
             if booked == "true":
-                print("✓ Already booked: Spin Class on Tue, Aug 12")
+                print(f"✓ Already booked: {class_detail_text} on {today}")
+                already_booked_or_waitlisted += 1
                 pass
             elif waitlisted == "true":
-                print("✓ Already on waitlist: HIIT Class on Tue, Aug 12")
+                print(f"✓ Already on waitlist: {class_detail_text} on {today}")
+                already_booked_or_waitlisted += 1
                 pass
             else:
-                join_waitlist_button = class_card.find_element(By.CSS_SELECTOR, "button[id^='book-button']")
-                join_waitlist_button.click()
-                class_name = class_card.find_element(By.CSS_SELECTOR, "h3[id^='class-name']").text
-                day_group_list = day_group_id.split("-")
-                day_group_list[3] = day_group_list[3].replace("(", "")
-                day_group_list[4] = day_group_list[4].replace(")", "")
-                day_group_list[5] = day_group_list[5].replace(")", "")
-                today = f"{day_group_list[3]} {day_group_list[4]} {day_group_list[5]}"
-                print(f"✔️ Booked: {class_name} on {today}")
+                if fully_booked == "true":
+                    join_waitlist_button = class_card.find_element(By.CSS_SELECTOR, "button[id^='book-button']")
+                    join_waitlist_button.click()
+                    class_name = class_card.find_element(By.CSS_SELECTOR, "h3[id^='class-name']").text
+                    print(f"✔️ Waitlisted: {class_name} on {today}")
+                    waitlists_joined += 1
+                else:
+                    join_waitlist_button = class_card.find_element(By.CSS_SELECTOR, "button[id^='book-button']")
+                    join_waitlist_button.click()
+                    class_name = class_card.find_element(By.CSS_SELECTOR, "h3[id^='class-name']").text
+                    print(f"✔️ Booked: {class_name} on {today}")
+                    class_booked += 1
+print(f"--- BOOKING SUMMARY ---\n"
+      f"Classes booked: {class_booked}\n"
+      f"Waitlists joined: {waitlists_joined}\n"
+      f"Already booked/waitlisted: {already_booked_or_waitlisted}\n"
+      f"Total Tuesday 6 pm classes processed: {total_for_tuesday}\n")
