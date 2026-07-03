@@ -21,73 +21,85 @@ chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
 driver = webdriver.Chrome(options=chrome_options)
 driver.get(GYM_URL)
 
+def retry(func, retries=7, description=None):
+    for attempt in range(retries):
+        try:
+            func()
+            return
+        except Exception:
+            print(f"Attempt {attempt + 1} failed for {description}")
+
 #Filling in info
-login_button = driver.find_element(By.ID, value="login-button")
-login_button.click()
-email_input = driver.find_element(By.ID, value="email-input")
-password_input = driver.find_element(By.ID, value="password-input")
-email_input.send_keys(ACCOUNT_EMAIL)
-password_input.send_keys(ACCOUNT_PASSWORD)
-submit_button = driver.find_element(By.ID, value="submit-button")
-submit_button.click()
+def login():
+    driver.get(GYM_URL)
+    login_button = driver.find_element(By.ID, value="login-button")
+    login_button.click()
+    email_input = driver.find_element(By.ID, value="email-input")
+    password_input = driver.find_element(By.ID, value="password-input")
+    email_input.send_keys(ACCOUNT_EMAIL)
+    password_input.send_keys(ACCOUNT_PASSWORD)
+    submit_button = driver.find_element(By.ID, value="submit-button")
+    submit_button.click()
 
-#Verifying that program is in the correct webpage
-element = WebDriverWait(driver, 10).until(
-    EC.presence_of_element_located((By.ID, "type-filter"))
-)
 
-time_list = driver.find_elements(By.CSS_SELECTOR, "p[id^='class-time-']")
-
+total_classes = 0
 class_booked = 0
 waitlists_joined = 0
 already_booked_or_waitlisted = 0
-total_classes = 0
 class_log = []
-for time in time_list:
-    time_text = time.text
-    time_text_2 = time_text.split(": ")
-    if time_text_2[1] == "6:00 PM":
-        day_group = time.find_element(By.XPATH, "ancestor::div[4]")
-        class_card = time.find_element(By.XPATH, "ancestor::div[3]")
-        print(class_card.get_attribute("id"))
-        day_group_id = day_group.get_attribute("id")
-        if "tue" in day_group_id or "thu" in day_group_id:
-            booked = class_card.get_attribute("data-user-booked")
-            waitlisted = class_card.get_attribute("data-user-waitlisted")
-            fully_booked = class_card.get_attribute("data-is-fully-booked")
-            class_detail = class_card.find_element(By.CSS_SELECTOR, value="h3[id^='class-name']")
-            class_detail_text = class_detail.text
-            day_group_list = day_group_id.split("-")
-            day_group_list = [part.replace("(", "").replace(")", "") for part in day_group_list]
-            today = " ".join(day_group_list[2:])
-            print(day_group_list)
-            print(day_group_id)
-            total_classes += 1
-            if booked == "true":
-                print(f"✓ Already booked: {class_detail_text} on {today}")
-                class_log.append(f"[Already Booked] {class_detail_text} on {today}")
-                already_booked_or_waitlisted += 1
-                pass
-            elif waitlisted == "true":
-                print(f"✓ Already on waitlist: {class_detail_text} on {today}")
-                class_log.append(f"[Already Waitlisted] {class_detail_text} on {today}")
-                already_booked_or_waitlisted += 1
-                pass
-            else:
-                if fully_booked == "true":
-                    join_waitlist_button = class_card.find_element(By.CSS_SELECTOR, "button[id^='book-button']")
-                    join_waitlist_button.click()
-                    class_name = class_card.find_element(By.CSS_SELECTOR, "h3[id^='class-name']").text
-                    print(f"✓ Joined waitlist for: {class_name} on {today}")
-                    class_log.append(f"[New Waitlist] {class_name} on {today}")
-                    waitlists_joined += 1
+def book_class():
+    global total_classes, class_booked, waitlists_joined, already_booked_or_waitlisted, class_log
+    driver.get(GYM_URL)
+    time_list = driver.find_elements(By.CSS_SELECTOR, "p[id^='class-time-']")
+    for time in time_list:
+        time_text = time.text
+        time_text_2 = time_text.split(": ")
+        if time_text_2[1] == "6:00 PM":
+            day_group = time.find_element(By.XPATH, "ancestor::div[4]")
+            class_card = time.find_element(By.XPATH, "ancestor::div[3]")
+            print(class_card.get_attribute("id"))
+            day_group_id = day_group.get_attribute("id")
+            if "tue" in day_group_id or "thu" in day_group_id:
+                booked = class_card.get_attribute("data-user-booked")
+                waitlisted = class_card.get_attribute("data-user-waitlisted")
+                fully_booked = class_card.get_attribute("data-is-fully-booked")
+                class_detail = class_card.find_element(By.CSS_SELECTOR, value="h3[id^='class-name']")
+                class_detail_text = class_detail.text
+                day_group_list = day_group_id.split("-")
+                day_group_list = [part.replace("(", "").replace(")", "") for part in day_group_list]
+                today = " ".join(day_group_list[2:])
+                print(day_group_list)
+                print(day_group_id)
+                total_classes += 1
+                if booked == "true":
+                    print(f"✓ Already booked: {class_detail_text} on {today}")
+                    class_log.append(f"[Already Booked] {class_detail_text} on {today}")
+                    already_booked_or_waitlisted += 1
+                    pass
+                elif waitlisted == "true":
+                    print(f"✓ Already on waitlist: {class_detail_text} on {today}")
+                    class_log.append(f"[Already Waitlisted] {class_detail_text} on {today}")
+                    already_booked_or_waitlisted += 1
+                    pass
                 else:
-                    join_waitlist_button = class_card.find_element(By.CSS_SELECTOR, "button[id^='book-button']")
-                    join_waitlist_button.click()
-                    class_name = class_card.find_element(By.CSS_SELECTOR, "h3[id^='class-name']").text
-                    print(f"✓ Successfully booked: {class_name} on {today}")
-                    class_log.append(f"[New Booking] {class_name} on {today}")
-                    class_booked += 1
+                    if fully_booked == "true":
+                        join_waitlist_button = class_card.find_element(By.CSS_SELECTOR, "button[id^='book-button']")
+                        join_waitlist_button.click()
+                        class_name = class_card.find_element(By.CSS_SELECTOR, "h3[id^='class-name']").text
+                        print(f"✓ Joined waitlist for: {class_name} on {today}")
+                        class_log.append(f"[New Waitlist] {class_name} on {today}")
+                        waitlists_joined += 1
+                    else:
+                        join_waitlist_button = class_card.find_element(By.CSS_SELECTOR, "button[id^='book-button']")
+                        join_waitlist_button.click()
+                        class_name = class_card.find_element(By.CSS_SELECTOR, "h3[id^='class-name']").text
+                        print(f"✓ Successfully booked: {class_name} on {today}")
+                        class_log.append(f"[New Booking] {class_name} on {today}")
+                        class_booked += 1
+
+retry(login)
+retry(book_class)
+
 print(f"--- BOOKING SUMMARY ---\n"
       f"Classes booked: {class_booked}\n"
       f"Waitlists joined: {waitlists_joined}\n"
