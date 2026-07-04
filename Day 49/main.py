@@ -21,25 +21,31 @@ chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
 driver = webdriver.Chrome(options=chrome_options)
 driver.get(GYM_URL)
 
+
 def retry(func, retries=7, description=None):
     for attempt in range(retries):
         try:
             func()
             return
-        except Exception:
-            print(f"Attempt {attempt + 1} failed for {description}")
+        except Exception as e:
+            print(f"⚠️ Attempt {attempt + 1} failed for [{description}]: {e}")
+            if attempt == retries - 1:
+                # Out of retries! Raise an error to stop the script.
+                raise RuntimeError(f"❌ {description} failed permanently after {retries} attempts.")
 
 #Filling in info
 def login():
     driver.get(GYM_URL)
-    login_button = driver.find_element(By.ID, value="login-button")
-    login_button.click()
-    email_input = driver.find_element(By.ID, value="email-input")
-    password_input = driver.find_element(By.ID, value="password-input")
-    email_input.send_keys(ACCOUNT_EMAIL)
-    password_input.send_keys(ACCOUNT_PASSWORD)
-    submit_button = driver.find_element(By.ID, value="submit-button")
-    submit_button.click()
+    login_buttons = driver.find_elements(By.ID, value="login-button")
+    if login_buttons:
+        login_button = login_buttons[0]
+        login_button.click()
+        email_input = driver.find_element(By.ID, value="email-input")
+        password_input = driver.find_element(By.ID, value="password-input")
+        email_input.send_keys(ACCOUNT_EMAIL)
+        password_input.send_keys(ACCOUNT_PASSWORD)
+        submit_button = driver.find_element(By.ID, value="submit-button")
+        submit_button.click()
 
 
 total_classes = 0
@@ -47,10 +53,21 @@ class_booked = 0
 waitlists_joined = 0
 already_booked_or_waitlisted = 0
 class_log = []
+verified_counter = 0
+verified_log = []
 def book_class():
     global total_classes, class_booked, waitlists_joined, already_booked_or_waitlisted, class_log
-    driver.get(GYM_URL)
+    total_classes = 0
+    class_booked = 0
+    waitlists_joined = 0
+    already_booked_or_waitlisted = 0
+    class_log = []
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "p[id^='class-time-']"))
+    )
     time_list = driver.find_elements(By.CSS_SELECTOR, "p[id^='class-time-']")
+    if not time_list:
+        raise Exception("No classes loaded")
     for time in time_list:
         time_text = time.text
         time_text_2 = time_text.split(": ")
@@ -97,8 +114,25 @@ def book_class():
                         class_log.append(f"[New Booking] {class_name} on {today}")
                         class_booked += 1
 
-retry(login)
-retry(book_class)
+
+def get_my_bookings():
+    global verified_counter, verified_log
+    my_bookings_link = driver.find_element(By.ID, "my-bookings-link")
+    my_bookings_link.click()
+    booking_cards = driver.find_elements(By.CSS_SELECTOR, "div[id^='waitlist-card-']")
+    verified_counter = 0
+    verified_log = []
+    for card in booking_cards:
+        card_text = card.text
+        if ("Tue" in card_text or "Thu" in card_text) and "6:00 PM" in card_text:
+            class_name_verified = card_text.split("\n")[0]
+            print(f"✓ Verified: {class_name_verified}")
+            verified_log.append(class_name_verified)
+            verified_counter += 1
+
+retry(login, description="Logging In")
+retry(book_class, description="Booking Classes")
+retry(get_my_bookings, description="Verifying Bookings")
 
 print(f"--- BOOKING SUMMARY ---\n"
       f"Classes booked: {class_booked}\n"
@@ -108,19 +142,6 @@ print(f"--- BOOKING SUMMARY ---\n"
 print(f"--- DETAILED CLASS LIST ---")
 for entry in class_log:
     print(f"{entry}")
-
-my_bookings_link = driver.find_element(By.ID, "my-bookings-link")
-my_bookings_link.click()
-booking_cards = driver.find_elements(By.CSS_SELECTOR, "div[id^='waitlist-card-']")
-verified_counter = 0
-verified_log = []
-for card in booking_cards:
-    card_text = card.text
-    if ("Tue" in card_text or "Thu" in card_text) and "6:00 PM" in card_text:
-        class_name_verified = card_text.split("\n")[0]
-        print(f"✓ Verified: {class_name_verified}")
-        verified_log.append(class_name_verified)
-        verified_counter += 1
 
 print(f"\n--- VERIFICATION RESULT ---\n"
       f"Expected: {total_classes} bookings\n"
